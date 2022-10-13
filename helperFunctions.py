@@ -48,7 +48,17 @@ def cleanNLFeature(text: str):
     stop = set(nltk.corpus.stopwords.words("english"))
     s =  set(string.punctuation)
 
-    # lower case
+    tok = nltk.word_tokenize(text)
+    # remove stopwords, punctuation
+    filtered_words = [word.lower() for word in tok if word.lower() not in stop and word.lower() not in s]
+    # remove digits
+    filtered_words = [word.replace('\d+', '') for word in filtered_words]
+    # remove one-char tokens
+    filtered_words = [word for word in filtered_words if len(word) > 1]
+
+    text = ' '.join(word for word in filtered_words)
+
+    """ # lower case
     text = text.lower()
     
     # regex with some symbols that (might) need to be replaced/removed manually 
@@ -68,6 +78,6 @@ def cleanNLFeature(text: str):
     # remove non-word character
     filtered_words = [re.sub(r'\W+', '', word) for word in filtered_words]
     
-    text = ' '.join(word for word in filtered_words) 
+    text = ' '.join(word for word in filtered_words)  """
     return text
 
