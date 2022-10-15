@@ -44,7 +44,6 @@ def cleanNLFeature(text: str):
     # load symbols and stopwords
     nltk.download('punkt')
     nltk.download("stopwords")
-
     stop = set(nltk.corpus.stopwords.words("english"))
     s =  set(string.punctuation)
 
@@ -57,7 +56,8 @@ def cleanNLFeature(text: str):
     filtered_words = [word for word in filtered_words if len(word) > 1]
 
     text = ' '.join(word for word in filtered_words)
-
+    # remove digits
+    text.replace('\d+', '')
     """ # lower case
     text = text.lower()
     

@@ -9,10 +9,7 @@ def predict(uniques: list, freq_tb: np.ndarray, sumRowsRel: np.ndarray, sumColsR
                 return
         if hypothesis == None:
                 return (predict(uniques, freq_tb, sumRowsRel, sumColsRel, event, 0),
-                        predict(uniques, freq_tb, sumRowsRel, sumColsRel, event, 1),
-                        predict(uniques, freq_tb, sumRowsRel, sumColsRel, event, 2),
-                        predict(uniques, freq_tb, sumRowsRel, sumColsRel, event, 3),
-                        predict(uniques, freq_tb, sumRowsRel, sumColsRel, event, 4))
+                        predict(uniques, freq_tb, sumRowsRel, sumColsRel, event, 1))
         # P(hypothesis|event) = (P(event|hypothesis) * P(hypothesis)) / P(event)
         i = uniques.index(event)
         p_h_e = freq_tb[i][hypothesis] / np.sum(freq_tb, axis=0)[hypothesis]
