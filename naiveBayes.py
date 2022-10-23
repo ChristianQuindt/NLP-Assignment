@@ -61,7 +61,7 @@ def frequencyTableOccurences(toCount: Series, labels: Series):
         for j in range(len(counts[i][0])):
             # update table on corresponding index [instances-to-count-index][labelindex]
             freq_tb[uniques_as_dict[counts[i][0][j]]][labels[i]] += counts[i][1][j]
-    return freq_tb, uniques
+    return freq_tb, uniques_as_dict
     
 def frequencyTableNgrams(toCount: Series, labels: Series):
     # get the complete vocabulary
