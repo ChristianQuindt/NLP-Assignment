@@ -2,7 +2,7 @@ import numpy as np
 from pandas import DataFrame, Series
 
 
-# returns prediction of truth of an event(instance to be classified) following a specified hypothesis(class).
+# returns prediction of truth of an event following a specified hypothesis.
 # If hypothesis is None, the probabilities for all hypothesies preceding the event will be calculated
 def predict(uniques: list, freq_tb: np.ndarray, sumRowsRel: np.ndarray, sumColsRel: np.ndarray, event, hypothesis: np.int64 = None, nclasses: np.int64 = None):
         if event not in uniques:
@@ -15,10 +15,10 @@ def predict(uniques: list, freq_tb: np.ndarray, sumRowsRel: np.ndarray, sumColsR
                 return [predict(uniques, freq_tb, sumRowsRel, sumColsRel, event, i) for i in range(nclasses)]
         # P(hypothesis|event) = (P(event|hypothesis) * P(hypothesis)) / P(event)
         i = uniques[event]
-        p_h_e = freq_tb[i][hypothesis] / np.sum(freq_tb, axis=0)[hypothesis]
-        p_h = sumRowsRel[i]
-        p_e = sumColsRel[hypothesis]
-        return p_h_e * p_h / p_e
+        p_e_h = freq_tb[i][hypothesis] / np.sum(freq_tb, axis=0)[hypothesis]
+        p_e = sumRowsRel[i]
+        p_h = sumColsRel[hypothesis]
+        return p_e_h * p_e / p_h
 
 def predictDoc(document: np.iterable, uniques: list, freq_tb: np.ndarray, sumRowsRel: np.ndarray, sumColsRel: np.ndarray, nclasses: np.int64 = None):
     # probabilities for an instance to classify to belong to a class (for every class)
