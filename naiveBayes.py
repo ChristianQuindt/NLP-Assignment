@@ -1,14 +1,15 @@
 import numpy as np
+import pandas as pd
 from pandas import DataFrame, Series
 
 
 # returns prediction of truth of an event following a specified hypothesis.
 # If hypothesis is None, the probabilities for all hypothesies preceding the event will be calculated
-def predict(uniques: list, freq_tb: np.ndarray, sumRowsRel: np.ndarray, sumColsRel: np.ndarray, event, hypothesis: np.int64 = None, nclasses: np.int64 = None):
+def predict(uniques: dict, freq_tb: np.ndarray, sumRowsRel: np.ndarray, sumColsRel: np.ndarray, event, hypothesis: np.int64 = None, nclasses: np.int64 = None):
         if event not in uniques:
                 #print(event + ' not in vocabulary!')
                 return
-        # for binary classification: p(!class) == p(1-class) --> no need for two iterations
+        
         if hypothesis == None:
             hypothesis = 0
             if nclasses is not None:
@@ -20,7 +21,7 @@ def predict(uniques: list, freq_tb: np.ndarray, sumRowsRel: np.ndarray, sumColsR
         p_h = sumColsRel[hypothesis]
         return p_e_h * p_e / p_h
 
-def predictDoc(document: np.iterable, uniques: list, freq_tb: np.ndarray, sumRowsRel: np.ndarray, sumColsRel: np.ndarray, nclasses: np.int64 = None):
+def predictDoc(document: np.iterable, uniques: dict, freq_tb: np.ndarray, sumRowsRel: np.ndarray, sumColsRel: np.ndarray, nclasses: np.int64 = None):
     # probabilities for an instance to classify to belong to a class (for every class)
     documentsProbs = []
     for iter in document:
@@ -62,7 +63,7 @@ def frequencyTableOccurences(toCount: Series, labels: Series):
             # update table on corresponding index [instances-to-count-index][labelindex]
             freq_tb[uniques_as_dict[counts[i][0][j]]][labels[i]] += counts[i][1][j]
     return freq_tb, uniques_as_dict
-    
+
 def frequencyTableNgrams(toCount: Series, labels: Series):
     # get the complete vocabulary
     uniques = set()
@@ -89,7 +90,47 @@ def frequencyTableNgrams(toCount: Series, labels: Series):
             toAdd = counts[i][j][1]
             freq_tb[uniques_as_dict[counts[i][j][0]]][labels[i]] += toAdd
 
-    return freq_tb, uniques_as_dict   
+    return freq_tb, uniques_as_dict 
+
+def frequencyTableTFIDF(toCount: Series, labels: Series, classvocabs: list, classweights: list):
+    # get the complete vocabulary
+    stack = toCount.str.split(' ', expand=True).stack()
+    uniques = list(stack.unique())
+
+    # major performance optimization in comparison to uniques.index() call. O(n) to O(1), 
+    # reducing the overall complexity to quadratic
+    uniques_as_dict = dict(zip(uniques,range(0,len(uniques))))
+    
+    # init frequency table with vocab in rows and labels as columns
+    freq_tb = np.zeros((len(uniques), labels.nunique()))
+    
+    # count words in a document
+    
+    for c in range(labels.nunique()):
+        filtered_texts = pd.Series(toCount[labels == c])
+        filtered_texts = filtered_texts.reset_index().text
+
+        filtered_labels = pd.Series(labels[labels == c])
+        filtered_labels = filtered_labels.reset_index()
+
+        counts = filtered_texts.apply(lambda x: np.unique(x.split(' '), return_counts=True))
+        # iterate through all documents instances to count and fill the freq table
+        # foreach document
+        for i in range(len(counts)):
+            # foreach instance to count in the document
+            for j in range(len(counts[i][0])):
+                # get weight of tfidf table of the correct class
+                weighttb = classweights[filtered_labels.label[i]]
+                idx = counts[i][0][j]
+                wordindex = 0
+                if idx in classvocabs[filtered_labels.label[i]]:
+                    wordindex = classvocabs[filtered_labels.label[i]][idx]
+                else: 
+                    continue
+                weight = weighttb[i][wordindex]
+                # update table on corresponding index [instances-to-count-index][labelindex]
+                freq_tb[uniques_as_dict[counts[filtered_labels.index[i]][0][j]]][c] += counts[filtered_labels.index[i]][1][j] * weight
+    return freq_tb, uniques_as_dict 
 
 def likelihoodTable(freq_tb: np.array):
     # total, row and columns wordcount
